@@ -1,0 +1,82 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // USERS COLLECTION
+    match /users/{userId} {
+      // Read own user profile
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Allow user creation if either:
+      // - Registering with a pending account (companyId == '__pending__')
+      // - Registering via invite (already assigned companyId)
+      allow create: if request.auth != null &&
+                    request.resource.data.keys().hasAll(['fullName', 'email', 'role', 'companyId']) &&
+                    (
+                      request.resource.data.companyId == '__pending__' ||
+                      request.auth.uid == userId
+                    );
+
+      // Allow Admins to read all users in their company
+      allow read: if isSignedIn() &&
+                  isAdmin() &&
+                  getUser(request.auth.uid).data.companyId == resource.data.companyId;
+
+      // Admins can update or delete others in their company (not themselves)
+      allow update, delete: if isCompanyAdmin(resource.data.companyId) &&
+                            request.auth.uid != userId;
+    }
+
+    // COMPANIES COLLECTION
+    match /companies/{companyId} {
+      allow create: if isSignedIn() && isCreatingOwnCompany(companyId);
+      allow read: if isCompanyMember(companyId);
+      allow update: if isCompanyAdmin(companyId);
+      allow delete: if false; // never allow deletes for companies
+    }
+
+    // USER INVITES COLLECTION
+    match /userInvites/{inviteId} {
+      // Allow creation by authenticated admins
+      allow create: if isSignedIn() && isAdmin();
+
+      // Allow unauthenticated users to read if token is still valid (not expired)
+      allow read: if resource.data.expiresAt > request.time;
+
+      // ✅ Allow invited user to delete their own invite after registration
+      allow delete: if request.auth != null &&
+                    resource.data.email == request.auth.token.email;
+
+      // No updates allowed
+      allow update: if false;
+    }
+
+    // 🔽 HELPER FUNCTIONS 🔽
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+             getUser(request.auth.uid).data.role == 'Administrator';
+    }
+
+    function isCreatingOwnCompany(companyId) {
+      return getUser(request.auth.uid).data.companyId == '__pending__';
+    }
+
+    function isCompanyMember(companyId) {
+      return getUser(request.auth.uid).data.companyId == companyId;
+    }
+
+    function isCompanyAdmin(companyId) {
+      return isCompanyMember(companyId) &&
+             getUser(request.auth.uid).data.role == 'Administrator';
+    }
+
+    function getUser(uid) {
+      return get(/databases/$(database)/documents/users/$(uid));
+    }
+  }
+}
+

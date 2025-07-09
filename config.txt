@@ -1,0 +1,26 @@
+// Site Key:6LevNGcrAAAAAAoLCtBXWBHLTGeKtBp6fnN32jAk
+// Secret: 6LevNGcrAAAAAPT5JIcsrya5I19qbBvU_ZVRBwfa
+// Resend API key:re_Hpr1ScXW_NUBQumB4somQdZqYVNh6PscT 
+// Axios (MailerSend) key:mlsn.2d5e6baf8e15202056f8bc51f8615fbaf444c60efd55d2bf22819ce14372acc0  
+
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCloGWMxNkFFA4cxL7VzyaRhJxNc4EO3kQ",
+  authDomain: "hirecopilot-ai.firebaseapp.com",
+  projectId: "hirecopilot-ai",
+  storageBucket: "hirecopilot-ai.firebasestorage.app",
+  messagingSenderId: "910201151327",
+  appId: "1:910201151327:web:c30711885b008fcfd560ea",
+  measurementId: "G-3H62CG2F1H"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
